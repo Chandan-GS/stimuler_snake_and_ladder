@@ -1,0 +1,38 @@
+name: snake_and_ladder
+description: "2-player jungle-themed Snakes & Ladders game."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.5
+  equatable: ^2.0.5
+  audioplayers: ^6.0.0
+  lottie: ^3.1.0
+  go_router: ^14.0.0
+  shared_preferences: ^2.2.3
+  vector_math: ^2.1.4
+  collection: ^1.18.0
+  cupertino_icons: ^1.0.8
+  google_fonts: ^8.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.3
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/audio/
+    - assets/lottie/
+    - assets/images/
+    - assets/images/avatars/
