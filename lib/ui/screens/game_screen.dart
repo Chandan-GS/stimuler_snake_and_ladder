@@ -19,35 +19,72 @@ class GameScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
-            colors: [
-              Color(0xFF2D6A4F),
-              AppColors.backgroundDark,
-            ],
+            colors: [Color(0xFF2D6A4F), AppColors.backgroundDark],
             center: Alignment.center,
             radius: 1.2,
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: BlocBuilder<GameCubit, GameState>(
-                        builder: (context, state) {
-                          return BoardWidget(state: state);
-                        },
+          child: OrientationBuilder(
+            builder: (context, orientation) {
+              final isLandscape = orientation == Orientation.landscape;
+
+              if (isLandscape) {
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        children: [
+                          _buildHeader(context),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Center(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: BlocBuilder<GameCubit, GameState>(
+                                    builder: (context, state) =>
+                                        BoardWidget(state: state),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: _buildControlPanel(context, isLandscape: true),
+                    ),
+                  ],
+                );
+              }
+
+              // Portrait layout
+              return Column(
+                children: [
+                  _buildHeader(context),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Center(
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: BlocBuilder<GameCubit, GameState>(
+                            builder: (context, state) {
+                              return BoardWidget(state: state);
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              _buildBottomPanel(context),
-            ],
+                  _buildControlPanel(context, isLandscape: false),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -65,8 +102,12 @@ class GameScreen extends StatelessWidget {
               color: AppColors.safeZoneGold,
               fontSize: 20,
               shadows: [
-                const Shadow(color: Colors.black54, offset: Offset(1, 1), blurRadius: 4),
-              ]
+                const Shadow(
+                  color: Colors.black54,
+                  offset: Offset(1, 1),
+                  blurRadius: 4,
+                ),
+              ],
             ),
           ),
           const Spacer(),
@@ -85,140 +126,178 @@ class GameScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomPanel(BuildContext context) {
+  Widget _buildControlPanel(BuildContext context, {required bool isLandscape}) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      borderRadius: isLandscape
+          ? const BorderRadius.horizontal(left: Radius.circular(32))
+          : const BorderRadius.vertical(top: Radius.circular(32)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.jungleGreen.withValues(alpha: 0.4),
             border: Border(
-              top: BorderSide(color: AppColors.mossGreen.withValues(alpha: 0.3), width: 1.5),
+              top: isLandscape
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: AppColors.mossGreen.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+              left: isLandscape
+                  ? BorderSide(
+                      color: AppColors.mossGreen.withValues(alpha: 0.3),
+                      width: 1.5,
+                    )
+                  : BorderSide.none,
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-          child: BlocBuilder<GameCubit, GameState>(
-            builder: (context, state) {
-              final settings = context.watch<SettingsCubit>().state;
-              
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          padding: EdgeInsets.fromLTRB(16, isLandscape ? 8 : 20, 16, 24),
+          child: Center(
+            child: SingleChildScrollView(
+              child: BlocBuilder<GameCubit, GameState>(
+                builder: (context, state) {
+                  final settings = context.watch<SettingsCubit>().state;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: PlayerCard(
-                          playerNum: 1,
-                          playerName: settings.player1Name,
-                          pos: state.player1Pos,
-                          isActive: state.currentPlayer == 1 && state.phase != GamePhase.gameOver,
-                          color: AppColors.playerOneColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        onTap: state.phase == GamePhase.rolling && !state.isRolling
-                            ? () => context.read<GameCubit>().rollDice()
-                            : null,
-                        child: DiceWidget(
-                          value: state.diceValue,
-                          rolling: state.isRolling,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: PlayerCard(
-                          playerNum: 2,
-                          playerName: settings.player2Name,
-                          pos: state.player2Pos,
-                          isActive: state.currentPlayer == 2 && state.phase != GamePhase.gameOver,
-                          color: AppColors.playerTwoColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 48,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Text(
-                        state.message,
-                        key: ValueKey(state.message),
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                          shadows: [
-                            const Shadow(color: Colors.black87, offset: Offset(1, 1), blurRadius: 4),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (state.phase == GamePhase.gameOver)
-                    Column(
-                      children: [
-                        Text(
-                          '🏆 ${state.winner == 1 ? settings.player1Name : settings.player2Name} Wins!',
-                          style: AppTextStyles.headline2.copyWith(color: AppColors.safeZoneGold),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => context.read<GameCubit>().resetGame(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.safeZoneGold,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 48,
-                              vertical: 16,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: PlayerCard(
+                              playerNum: 1,
+                              playerName: settings.player1Name,
+                              pos: state.player1Pos,
+                              isActive:
+                                  state.currentPlayer == 1 &&
+                                  state.phase != GamePhase.gameOver,
+                              color: AppColors.playerOneColor,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 8,
                           ),
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap:
+                                state.phase == GamePhase.rolling &&
+                                    !state.isRolling
+                                ? () => context.read<GameCubit>().rollDice()
+                                : null,
+                            child: DiceWidget(
+                              value: state.diceValue,
+                              rolling: state.isRolling,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: PlayerCard(
+                              playerNum: 2,
+                              playerName: settings.player2Name,
+                              pos: state.player2Pos,
+                              isActive:
+                                  state.currentPlayer == 2 &&
+                                  state.phase != GamePhase.gameOver,
+                              color: AppColors.playerTwoColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 48,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
                           child: Text(
-                            'Play Again',
-                            style: AppTextStyles.button.copyWith(color: Colors.black),
+                            state.message,
+                            key: ValueKey(state.message),
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              shadows: [
+                                const Shadow(
+                                  color: Colors.black87,
+                                  offset: Offset(1, 1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                  else
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: (state.isRolling || state.phase == GamePhase.moving) 
-                            ? null 
-                            : () => context.read<GameCubit>().rollDice(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: state.currentPlayer == 1
-                              ? AppColors.playerOneColor
-                              : AppColors.playerTwoColor,
-                          disabledBackgroundColor: Colors.white24,
-                          disabledForegroundColor: Colors.white54,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: state.isRolling ? 0 : 8,
-                        ),
-                        child: Text(
-                          state.isRolling
-                              ? 'Rolling...'
-                              : (state.phase == GamePhase.moving 
-                                  ? 'Moving...' 
-                                  : '${state.currentPlayer == 1 ? settings.player1Name : settings.player2Name} — Roll Dice 🎲'),
-                          style: AppTextStyles.button,
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
+                      const SizedBox(height: 8),
+                      if (state.phase == GamePhase.gameOver)
+                        Column(
+                          children: [
+                            Text(
+                              '🏆 ${state.winner == 1 ? settings.player1Name : settings.player2Name} Wins!',
+                              style: AppTextStyles.headline2.copyWith(
+                                color: AppColors.safeZoneGold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  context.read<GameCubit>().resetGame(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.safeZoneGold,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 48,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                              ),
+                              child: Text(
+                                'Play Again',
+                                style: AppTextStyles.button.copyWith(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed:
+                                (state.isRolling ||
+                                    state.phase == GamePhase.moving)
+                                ? null
+                                : () => context.read<GameCubit>().rollDice(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: state.currentPlayer == 1
+                                  ? AppColors.playerOneColor
+                                  : AppColors.playerTwoColor,
+                              disabledBackgroundColor: Colors.white24,
+                              disabledForegroundColor: Colors.white54,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: state.isRolling ? 0 : 8,
+                            ),
+                            child: Text(
+                              state.isRolling
+                                  ? 'Rolling...'
+                                  : (state.phase == GamePhase.moving
+                                        ? 'Moving...'
+                                        : '${state.currentPlayer == 1 ? settings.player1Name : settings.player2Name} — Roll Dice 🎲'),
+                              style: AppTextStyles.button.copyWith(
+                                color: state.currentPlayer == 1
+                                    ? Colors.black87
+                                    : Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ),

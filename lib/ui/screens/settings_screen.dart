@@ -65,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               Expanded(
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _p2Controller,
                         AppColors.playerTwoColor,
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 48), // Replaced Spacer
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.safeZoneGold,

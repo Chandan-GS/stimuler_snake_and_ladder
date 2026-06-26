@@ -21,7 +21,8 @@ class PlayerCard extends StatefulWidget {
   State<PlayerCard> createState() => _PlayerCardState();
 }
 
-class _PlayerCardState extends State<PlayerCard> with SingleTickerProviderStateMixin {
+class _PlayerCardState extends State<PlayerCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -64,7 +65,7 @@ class _PlayerCardState extends State<PlayerCard> with SingleTickerProviderStateM
       animation: _pulseAnimation,
       builder: (context, child) {
         final glowIntensity = widget.isActive ? _pulseAnimation.value : 0.0;
-        
+
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -83,14 +84,21 @@ class _PlayerCardState extends State<PlayerCard> with SingleTickerProviderStateM
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: widget.isActive 
-                      ? widget.color.withValues(alpha: 0.2 + (glowIntensity * 0.15)) 
+                  color: widget.isActive
+                      ? widget.color.withValues(
+                          alpha: 0.2 + (glowIntensity * 0.15),
+                        )
                       : Colors.white.withValues(alpha: 0.05),
                   border: Border.all(
-                    color: widget.isActive 
-                        ? widget.color.withValues(alpha: 0.5 + (glowIntensity * 0.5)) 
+                    color: widget.isActive
+                        ? widget.color.withValues(
+                            alpha: 0.5 + (glowIntensity * 0.5),
+                          )
                         : Colors.white.withValues(alpha: 0.1),
                     width: widget.isActive ? 2 : 1,
                   ),
@@ -104,8 +112,8 @@ class _PlayerCardState extends State<PlayerCard> with SingleTickerProviderStateM
                       backgroundColor: widget.color,
                       child: Text(
                         'P${widget.playerNum}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: widget.playerNum == 1 ? Colors.black87 : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
