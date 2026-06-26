@@ -11,9 +11,6 @@ A premium, visually stunning 2.5D Snakes and Ladders game built with Flutter and
 - **Responsive Layout**: Fully optimized for both Portrait and Landscape orientations, scaling seamlessly to tablets and different screen sizes.
 - **Robust Architecture**: Built with `flutter_bloc` for clean separation of game logic and UI state.
 
-## 📸 Screenshots
-*(Add screenshots here)*
-
 ## 🛠 Tech Stack
 
 - **Framework**: Flutter
